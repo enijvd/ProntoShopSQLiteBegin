@@ -1,4 +1,4 @@
-package com.okason.prontoshop.ui.addProduct;
+package com.okason.prontoshop.fragments;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -26,9 +26,9 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 
-public class AddProductDialogFragment extends DialogFragment implements AddProductContract.View{
+public class AddProductDialogFragment extends DialogFragment {
 
-    private AddProductContract.Action mPresenter;
+
     private boolean mInEditMode = false;
 
     @BindView(R.id.edit_text_product_name) EditText mNameEditText;
@@ -61,8 +61,6 @@ public class AddProductDialogFragment extends DialogFragment implements AddProdu
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mPresenter = new AddProductPresenter(this);
-
     }
 
 
@@ -77,7 +75,7 @@ public class AddProductDialogFragment extends DialogFragment implements AddProdu
             ButterKnife.bind(this, rootView);
 
             if (getArguments() != null && getArguments().containsKey(Constants.COLUMN_ID)){
-                mPresenter.checkStatus(getArguments().getLong(Constants.COLUMN_ID));
+                checkStatus(getArguments().getLong(Constants.COLUMN_ID));
             }
 
             View titleView = inflater.inflate(R.layout.dialog_title, null);
@@ -85,7 +83,7 @@ public class AddProductDialogFragment extends DialogFragment implements AddProdu
             titleText.setText(mInEditMode ? "Update Product" : "Add Product");
             dialogFragment.setCustomTitle(titleView);
 
-            initAutoComplete(mPresenter.getCategoryNames());
+            initAutoComplete(getCategoryNames());
 
             dialogFragment.setPositiveButton(mInEditMode ? "Update" : "Add", new DialogInterface.OnClickListener() {
                 @Override
@@ -108,6 +106,14 @@ public class AddProductDialogFragment extends DialogFragment implements AddProdu
         return dialogFragment.create();
     }
 
+    private List<String> getCategoryNames() {
+        return null;
+    }
+
+    private void checkStatus(long id) {
+
+    }
+
     private void initAutoComplete(List<String> categoryNames) {
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(),
                 android.R.layout.simple_dropdown_item_1line, categoryNames);
@@ -116,7 +122,6 @@ public class AddProductDialogFragment extends DialogFragment implements AddProdu
 
 
 
-    @Override
     public void populateForm(Product product) {
         mNameEditText.setText(product.getProductName());
         mDescriptionEditText.setText(product.getDescription());
@@ -127,17 +132,17 @@ public class AddProductDialogFragment extends DialogFragment implements AddProdu
         mImagePathEditText.setText(product.getImagePath());
     }
 
-    @Override
+
     public void displayMessage(String message) {
 
     }
 
-    @Override
+
     public void setEditMode(boolean editMode) {
         mInEditMode = editMode;
     }
 
-    @Override
+
     public void clearForm() {
 
     }
@@ -199,6 +204,10 @@ public class AddProductDialogFragment extends DialogFragment implements AddProdu
             e.printStackTrace();
         }
 
-        mPresenter.onAddProductButtonClick(product);
+        saveProductToDatbase(product);
+    }
+
+    private void saveProductToDatbase(Product product) {
+        //Todo - Save product to database
     }
 }

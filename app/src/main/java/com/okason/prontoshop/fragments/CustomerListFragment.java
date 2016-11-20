@@ -1,4 +1,4 @@
-package com.okason.prontoshop.ui.customers;
+package com.okason.prontoshop.fragments;
 
 
 import android.app.AlertDialog;
@@ -19,12 +19,18 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.okason.prontoshop.R;
+import com.okason.prontoshop.core.ProntoShopApplication;
+import com.okason.prontoshop.core.ShoppingCart;
 import com.okason.prontoshop.core.listeners.OnCustomerSelectedListener;
+import com.okason.prontoshop.data.SampleCustomerData;
+import com.okason.prontoshop.data.SampleProductData;
 import com.okason.prontoshop.models.Customer;
-import com.okason.prontoshop.ui.addCustomer.AddCustomerDialogFragment;
+import com.okason.prontoshop.adapter.CustomerListAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.inject.Inject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -33,11 +39,11 @@ import butterknife.ButterKnife;
  * A simple {@link Fragment} subclass.
  */
 public class CustomerListFragment extends Fragment implements
-        CustomerListContract.View, OnCustomerSelectedListener{
+        OnCustomerSelectedListener{
 
     private View mRootView;
     private CustomerListAdapter mAdapter;
-    private CustomerListContract.Actions mCustomerPresenter;
+    @Inject ShoppingCart mCart;
 
 
     @BindView(R.id.customer_recycler_view) RecyclerView mRecyclerView;
@@ -61,11 +67,11 @@ public class CustomerListFragment extends Fragment implements
         // Inflate the layout for this fragment
         mRootView = inflater.inflate(R.layout.fragment_customer_list, container, false);
         ButterKnife.bind(this, mRootView);
-        mCustomerPresenter = new CustomerListPresenter(this);
+        ProntoShopApplication.getInstance().getAppComponent().inject(this);
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mCustomerPresenter.onAddCustomerButtonClicked();
+                showAddCustomerForm();
             }
         });
 
@@ -81,22 +87,33 @@ public class CustomerListFragment extends Fragment implements
     @Override
     public void onResume() {
         super.onResume();
-        mCustomerPresenter.loadCustomers();
+        loadCustomers();
     }
 
-    @Override
+    private void loadCustomers() {
+        List<Customer> availableCustomers = SampleCustomerData.getCustomers();
+        if (availableCustomers != null && availableCustomers.size() > 0){
+            hideEmptyText();
+            showCustomers(availableCustomers);
+        }else {
+            showEmptyText();
+        }
+
+    }
+
+
     public void showCustomers(List<Customer> customers) {
         mAdapter.replaceData(customers);
     }
 
-    @Override
+
     public void showAddCustomerForm() {
         AddCustomerDialogFragment mAddCustomerFragment = new AddCustomerDialogFragment();
         mAddCustomerFragment.show(getActivity().getFragmentManager(), "Dialog");
 
     }
 
-    @Override
+
     public void showDeleteCustomerPrompt(final Customer customer) {
         AlertDialog.Builder dialog = new AlertDialog.Builder(getContext());
         dialog.setTitle("Delete Customer?");
@@ -110,32 +127,36 @@ public class CustomerListFragment extends Fragment implements
         dialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                mCustomerPresenter.deleteCustomer(customer);
+                deleteCustomer(customer);
             }
         });
         dialog.show();
     }
 
-    @Override
+    private void deleteCustomer(Customer customer) {
+
+    }
+
+
     public void showEditCustomerForm(Customer customer) {
         AddCustomerDialogFragment fragment = AddCustomerDialogFragment.newInstance(customer.getId());
         fragment.show(getActivity().getFragmentManager(), "Dialog");
     }
 
 
-    @Override
+
     public void showEmptyText() {
         mEmptyTextView.setVisibility(View.VISIBLE);
         mRecyclerView.setVisibility(View.GONE);
     }
 
-    @Override
+
     public void hideEmptyText() {
         mEmptyTextView.setVisibility(View.GONE);
         mRecyclerView.setVisibility(View.VISIBLE);
     }
 
-    @Override
+
     public void showMessage(String message) {
         showToastMessage(message);
     }
@@ -147,7 +168,7 @@ public class CustomerListFragment extends Fragment implements
 
     @Override
     public void onSelectCustomer(Customer customer) {
-        mCustomerPresenter.onCustomerSelected(customer);
+        mCart.setCustomer(customer);
     }
 
     @Override
@@ -190,15 +211,15 @@ public class CustomerListFragment extends Fragment implements
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 switch (position){
                     case 0:
-                        mCustomerPresenter.onEditCustomerButtonClicked(clickedCustomer);
+                        showEditCustomerForm(clickedCustomer);
                         dialog.dismiss();
                         break;
                     case 1:
-                        mCustomerPresenter.onDeleteCustomerButtonClicked(clickedCustomer);
+                        showDeleteCustomerPrompt(clickedCustomer);
                         dialog.dismiss();
                         break;
                     case 2:
-                        mCustomerPresenter.onCustomerSelected(clickedCustomer);
+                        onSelectCustomer(clickedCustomer);
                         dialog.dismiss();
                         break;
                 }

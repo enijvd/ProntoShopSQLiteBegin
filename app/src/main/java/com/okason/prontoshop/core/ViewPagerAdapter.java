@@ -1,12 +1,13 @@
-package com.okason.prontoshop.common;
+package com.okason.prontoshop.core;
 
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 
-import com.okason.prontoshop.ui.customers.CustomerListFragment;
-import com.okason.prontoshop.ui.products.ProductListFragment;
-import com.okason.prontoshop.ui.checkout.CheckoutFragment;
+import com.okason.prontoshop.fragments.CustomerListFragment;
+import com.okason.prontoshop.fragments.ProductListFragment;
+import com.okason.prontoshop.fragments.CheckoutFragment;
+import com.okason.prontoshop.fragments.TransactionListFragment;
 
 /**
  * Created by Valentine on 4/10/2016.
@@ -29,6 +30,9 @@ public class ViewPagerAdapter extends FragmentStatePagerAdapter {
             case 2:
                 selectedFragment = new CheckoutFragment();
                 break;
+            case 3:
+                selectedFragment = new TransactionListFragment();
+                break;
             default:
                 selectedFragment = new ProductListFragment();
                 break;
@@ -38,7 +42,7 @@ public class ViewPagerAdapter extends FragmentStatePagerAdapter {
 
     @Override
     public int getCount() {
-        return 3;
+        return 4;
     }
 
     @Override
@@ -53,6 +57,9 @@ public class ViewPagerAdapter extends FragmentStatePagerAdapter {
                 break;
             case 2:
                 title = "Shopping Cart";
+                break;
+            case 3:
+                title = "Transactions";
                 break;
         }
         return title;

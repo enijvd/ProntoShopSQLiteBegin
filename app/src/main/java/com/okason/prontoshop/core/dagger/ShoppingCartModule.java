@@ -4,7 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
-import com.okason.prontoshop.common.ShoppingCart;
+
+import com.okason.prontoshop.core.ShoppingCart;
 
 import javax.inject.Singleton;
 

@@ -1,4 +1,4 @@
-package com.okason.prontoshop.ui.customers;
+package com.okason.prontoshop.adapter;
 
 import android.content.Context;
 import android.graphics.Color;

@@ -1,4 +1,4 @@
-package com.okason.prontoshop.ui.addCustomer;
+package com.okason.prontoshop.fragments;
 
 
 import android.app.AlertDialog;
@@ -24,9 +24,8 @@ import butterknife.ButterKnife;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class AddCustomerDialogFragment extends DialogFragment implements AddCustomerContract.View{
+public class AddCustomerDialogFragment extends DialogFragment {
 
-    private AddCustomerContract.Action mPresenter;
     private boolean mInEditMode = false;
 
     @BindView(R.id.edit_text_customer_name)  EditText mNameEditText;
@@ -61,7 +60,7 @@ public class AddCustomerDialogFragment extends DialogFragment implements AddCust
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mPresenter = new AddCustomerPresenter(this);
+
     }
 
     @Override
@@ -75,7 +74,7 @@ public class AddCustomerDialogFragment extends DialogFragment implements AddCust
             ButterKnife.bind(this, rootView);
 
             if (getArguments() != null && getArguments().containsKey(Constants.COLUMN_ID)){
-                mPresenter.checkStatus(getArguments().getLong(Constants.COLUMN_ID));
+
             }
 
             View titleView = inflater.inflate(R.layout.dialog_title, null);
@@ -101,7 +100,7 @@ public class AddCustomerDialogFragment extends DialogFragment implements AddCust
         return dialogFragment.create();
     }
 
-    @Override
+
     public void populateForm(Customer customer) {
         mNameEditText.setText(customer.getCustomerName());
         mEmailEditText.setText(customer.getEmailAddress());
@@ -115,17 +114,17 @@ public class AddCustomerDialogFragment extends DialogFragment implements AddCust
         mCustomerNote.setText(customer.getNote());
     }
 
-    @Override
+
     public void displayMessage(String message) {
         Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
     }
 
-    @Override
+
     public void setEditMode(boolean editMode) {
         mInEditMode = editMode;
     }
 
-    @Override
+
     public void clearForm() {
 
     }
@@ -183,8 +182,12 @@ public class AddCustomerDialogFragment extends DialogFragment implements AddCust
         customer.setState(mStateEditText.getText().toString());
         customer.setPostalCode(mZipEditText.getText().toString());
         customer.setNote(mCustomerNote.getText().toString());
-        mPresenter.saveCustomer(customer);
+        saveCustomerToDatabase(customer);
 
+    }
+
+    private void saveCustomerToDatabase(Customer customer) {
+        //Todo - save customer to database
     }
 
 }

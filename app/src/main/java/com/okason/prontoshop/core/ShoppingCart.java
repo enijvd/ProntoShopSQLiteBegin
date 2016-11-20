@@ -1,16 +1,12 @@
-package com.okason.prontoshop.common;
+package com.okason.prontoshop.core;
 
 import android.content.SharedPreferences;
 import android.util.Log;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.okason.prontoshop.core.ProntoShopApplication;
 import com.okason.prontoshop.core.events.CustomerSelectedEvent;
-import com.okason.prontoshop.core.events.UpdateToolbarEvent;
+import com.okason.prontoshop.core.events.OnCartItemsChangeEvent;
 import com.okason.prontoshop.models.Customer;
 import com.okason.prontoshop.models.LineItem;
-import com.okason.prontoshop.util.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +17,6 @@ import java.util.List;
 public class ShoppingCart {
     private final SharedPreferences sharedPreferences;
     private Customer selectedCustomer;
-    private SharedPreferences.Editor editor;
     private List<LineItem> shoppingCart;
 
     private final static String LOG_TAG = ShoppingCart.class.getSimpleName();
@@ -29,7 +24,7 @@ public class ShoppingCart {
 
     public ShoppingCart(SharedPreferences sharedPreferences) {
         this.sharedPreferences = sharedPreferences;
-        editor = sharedPreferences.edit();
+
         initShoppingCart();
     }
 
@@ -37,34 +32,7 @@ public class ShoppingCart {
     private void initShoppingCart() {
         shoppingCart = new ArrayList<>();
         selectedCustomer = new Customer();
-        Gson gson = new Gson();
-
-        if (sharedPreferences.getBoolean(Constants.OPEN_CART_EXITS, false)){
-            String serializedCartItems = sharedPreferences.getString(Constants.SERIALIZED_CART_ITEMS,"");
-            if (DEBUG){
-                Log.d(LOG_TAG, "Serialized Cart Items: " + serializedCartItems);
-            }
-            String serializedCustomer = sharedPreferences.getString(Constants.SERIALIZED_CUSTOMER,"");
-            if (DEBUG){
-                Log.d(LOG_TAG, "Serialized Customer: " + serializedCustomer);
-            }
-            if (!serializedCartItems.equals("")){
-                shoppingCart = gson.<ArrayList<LineItem>>fromJson(serializedCartItems,
-                        new TypeToken<ArrayList<LineItem>>(){}.getType());
-            }
-
-            if (!serializedCustomer.equals("")){
-                selectedCustomer = gson.fromJson(serializedCustomer, Customer.class);
-            }
-        }
         populateToolbar();
-        if (shoppingCart != null && shoppingCart.size() > 0 && selectedCustomer != null && selectedCustomer.getCustomerName() != null){
-            if (DEBUG){
-                Log.d(LOG_TAG, "Customer: " + selectedCustomer.getCustomerName());
-            }
-            setCustomer(selectedCustomer);
-        }
-
     }
 
     public void addItemToCart(LineItem item) {
@@ -92,19 +60,16 @@ public class ShoppingCart {
         }
         shoppingCart.clear();
         selectedCustomer = null;
-        editor.putString(Constants.SERIALIZED_CART_ITEMS, "").commit();
-        editor.putString(Constants.SERIALIZED_CUSTOMER, "").commit();
-        editor.putBoolean(Constants.OPEN_CART_EXITS, false).commit();
         populateToolbar();
         ProntoShopApplication.getInstance()
-                .getBus().post(new CustomerSelectedEvent(new Customer(), true));
+                .getBus().post(new CustomerSelectedEvent("Customer Name"));
     }
 
     public void removeItemFromCart(LineItem item){
         shoppingCart.remove(item);
         if (shoppingCart.size() == 0){
             ProntoShopApplication.getInstance()
-                    .getBus().post(new CustomerSelectedEvent(new Customer(), true));
+                    .getBus().post(new CustomerSelectedEvent("Customer Name"));
         }
         populateToolbar();
     }
@@ -114,12 +79,27 @@ public class ShoppingCart {
         shoppingCart.clear();
         populateToolbar();
         ProntoShopApplication.getInstance()
-                .getBus().post(new CustomerSelectedEvent(new Customer(), true));
+                .getBus().post(new CustomerSelectedEvent("Customer Name"));
     }
 
     private void populateToolbar() {
+        double total = 0;
+        int qty = 0;
+
+        for (LineItem lineItem: getShoppingCart()){
+            total += lineItem.getSumPrice();
+            qty += lineItem.getQuantity();
+        }
+
+        String selectedCustomerName = "";
+        if (selectedCustomer != null && selectedCustomer.getCustomerName() != null && !selectedCustomer.getCustomerName().equals("")){
+            selectedCustomerName = selectedCustomer.getCustomerName();
+        }
+
+        ProntoShopApplication.getInstance()
+                .getBus().post(new CustomerSelectedEvent(selectedCustomerName));
         ProntoShopApplication.getInstance().getBus()
-                .post(new UpdateToolbarEvent(shoppingCart));
+                .post(new OnCartItemsChangeEvent(total, qty));
 
     }
 
@@ -134,27 +114,11 @@ public class ShoppingCart {
     public void setCustomer(Customer customer){
         selectedCustomer = customer;
         ProntoShopApplication.getInstance()
-                .getBus().post(new CustomerSelectedEvent(customer, false));
+                .getBus().post(new CustomerSelectedEvent(customer.getCustomerName()));
 
     }
 
-    public void saveCartToPreference(){
-        if (shoppingCart != null) {
-            Gson gson = new Gson();
-            String serializedItems = gson.toJson(shoppingCart);
-            if (DEBUG){
-                Log.d(LOG_TAG, "Saving Serialized Cart Items: " + serializedItems);
-            }
-            String serializedCustomer = gson.toJson(selectedCustomer);
-            if (DEBUG){
-                Log.d(LOG_TAG, "Saving Serialized Customers: " + serializedCustomer);
-            }
 
-            editor.putString(Constants.SERIALIZED_CART_ITEMS, serializedItems).commit();
-            editor.putString(Constants.SERIALIZED_CUSTOMER, serializedCustomer).commit();
-            editor.putBoolean(Constants.OPEN_CART_EXITS, true).commit();
-        }
-    }
 
     public void updateItemQty(LineItem item, int qty) {
         boolean itemAlreadyInCart = false;

@@ -6,19 +6,16 @@ import com.okason.prontoshop.models.Customer;
  * Created by Valentine on 4/10/2016.
  */
 public class CustomerSelectedEvent {
-    private final Customer selectedCustomer;
-    private final boolean clearCustomer;
+    private final String customerName;
 
-    public CustomerSelectedEvent(Customer selectedCustomer, boolean clearCustomer) {
-        this.selectedCustomer = selectedCustomer;
-        this.clearCustomer = clearCustomer;
+
+    public CustomerSelectedEvent(String customerName) {
+        this.customerName = customerName;
     }
 
-    public Customer getSelectedCustomer() {
-        return selectedCustomer;
+    public String getCustomerName() {
+        return customerName;
     }
 
-    public boolean isClearCustomer() {
-        return clearCustomer;
-    }
+
 }

@@ -1,13 +1,11 @@
 package com.okason.prontoshop.core.dagger;
 
-import com.okason.prontoshop.common.MainActivity;
-import com.okason.prontoshop.ui.addCustomer.AddCustomerPresenter;
-import com.okason.prontoshop.ui.addProduct.AddProductPresenter;
-import com.okason.prontoshop.ui.checkout.CheckoutPresenter;
-import com.okason.prontoshop.ui.customers.CustomerListPresenter;
-import com.okason.prontoshop.ui.products.ProductListPresenter;
-import com.okason.prontoshop.ui.transaction.TransactionListFragment;
-import com.okason.prontoshop.ui.transaction.TransactionPresenter;
+
+import com.okason.prontoshop.core.MainActivity;
+import com.okason.prontoshop.fragments.CheckoutFragment;
+import com.okason.prontoshop.fragments.CustomerListFragment;
+import com.okason.prontoshop.fragments.ProductListFragment;
+import com.okason.prontoshop.fragments.TransactionListFragment;
 
 import javax.inject.Singleton;
 
@@ -22,19 +20,13 @@ import dagger.Component;
         modules = {
                 AppModule.class,
                 ShoppingCartModule.class,
-                BusModule.class,
-                PersistenceModule.class
+                BusModule.class
         }
 )
 public interface AppComponent {
-        void inject(ProductListPresenter presenter);
-        void inject(CustomerListPresenter presenter);
-        void inject(AddCustomerPresenter presenter);
-        void inject(CheckoutPresenter presenter);
-        void inject(AddProductPresenter presenter);
-        void inject(TransactionPresenter presenter);
+        void inject(ProductListFragment fragment);
+        void inject(CustomerListFragment fragment);
+        void inject(CheckoutFragment fragment);
         void inject(TransactionListFragment fragment);
         void inject(MainActivity activity);
-
-
 }

@@ -1,11 +1,14 @@
-package com.okason.prontoshop.ui.products;
+package com.okason.prontoshop.fragments;
 
 
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
@@ -21,9 +24,13 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.okason.prontoshop.R;
+import com.okason.prontoshop.core.ShoppingCart;
 import com.okason.prontoshop.core.listeners.OnProductSelectedListener;
+import com.okason.prontoshop.data.SampleProductData;
+import com.okason.prontoshop.models.LineItem;
 import com.okason.prontoshop.models.Product;
-import com.okason.prontoshop.ui.addProduct.AddProductDialogFragment;
+import com.okason.prontoshop.adapter.ProductListAdapter;
+import com.okason.prontoshop.util.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,13 +42,13 @@ import butterknife.ButterKnife;
  * A simple {@link Fragment} subclass.
  */
 public class ProductListFragment extends Fragment
-        implements ProductListContract.View,
-        OnProductSelectedListener {
+        implements OnProductSelectedListener {
 
     private View mRootView;
     private ProductListAdapter mAdapter;
-    private ProductListContract.Actions mProductPresenter;
     private AddProductDialogFragment mAddProductDialogFragment;
+    private ShoppingCart mCart;
+    private SharedPreferences sharedPreferences;
 
 
 
@@ -61,11 +68,12 @@ public class ProductListFragment extends Fragment
         // Inflate the layout for this fragment
         mRootView = inflater.inflate(R.layout.fragment_products_list, container, false);
         ButterKnife.bind(this, mRootView);
-        mProductPresenter = new ProductListPresenter(this);
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+        mCart = new ShoppingCart(sharedPreferences);
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mProductPresenter.onAddProductButtonClicked();
+               showAddProductForm();
             }
         });
 
@@ -82,32 +90,34 @@ public class ProductListFragment extends Fragment
     @Override
     public void onResume() {
         super.onResume();
-        mProductPresenter.loadProducts();
+        loadProducts();
+    }
+
+    private void loadProducts() {
+        List<Product> availableProducts = SampleProductData.getSampleProducts();
+        if (availableProducts != null && availableProducts.size() > 0){
+            hideEmptyText();
+            mAdapter.replaceData(availableProducts);
+
+        }else {
+            showEmptyText();
+        }
+
     }
 
 
-    @Override
-    public void showProducts(List<Product> products) {
-        mAdapter.replaceData(products);
-
-    }
-
-
-    @Override
     public void showAddProductForm() {
         mAddProductDialogFragment = AddProductDialogFragment.newInstance(0);
         mAddProductDialogFragment.show(getActivity().getFragmentManager(), "Dialog");
 
     }
 
-    @Override
     public void showEditProductForm(Product product) {
         AddProductDialogFragment dialog = AddProductDialogFragment.newInstance(product.getId());
         dialog.show(getActivity().getFragmentManager(), "Dialog");
     }
 
-    @Override
-    public void showDeleteProductPrompt(final Product product) {
+   public void showDeleteProductPrompt(final Product product) {
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(getContext());
         LayoutInflater inflater = getActivity().getLayoutInflater();
 
@@ -120,7 +130,7 @@ public class ProductListFragment extends Fragment
         alertDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                mProductPresenter.deleteProduct(product);
+                deleteProduct(product);
                 dialog.dismiss();
             }
         });
@@ -133,30 +143,22 @@ public class ProductListFragment extends Fragment
         alertDialog.show();
     }
 
-    @Override
-    public void showGoogleSearch(Product product) {
-        Uri uri = Uri.parse("http://www.google.com/#q=" + product.getProductName());
-        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-        startActivity(intent);
+    private void deleteProduct(Product product) {
+        //Todo - Delete product
     }
 
-    @Override
+
+
     public void showEmptyText() {
         mEmptyTextView.setVisibility(View.VISIBLE);
         mRecyclerView.setVisibility(View.GONE);
     }
 
-    @Override
+
     public void hideEmptyText() {
         mEmptyTextView.setVisibility(View.GONE);
         mRecyclerView.setVisibility(View.VISIBLE);
     }
-
-    @Override
-    public void showMessage(String message) {
-        showToastMessage(message);
-    }
-
 
     private void showToastMessage(String message){
         Snackbar.make(mRootView.getRootView(), message, Snackbar.LENGTH_SHORT).show();
@@ -164,7 +166,8 @@ public class ProductListFragment extends Fragment
 
     @Override
     public void onSelectProduct(Product selectedProduct) {
-        mProductPresenter.onAddToCartButtonClicked(selectedProduct);
+        LineItem item = new LineItem(selectedProduct, 1);
+        mCart.addItemToCart(item);
     }
 
     @Override
@@ -207,19 +210,15 @@ public class ProductListFragment extends Fragment
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 switch (position){
                     case 0:
-                        mProductPresenter.onEditProductButtonClicked(clickedProduct);
+                        showEditProductForm(clickedProduct);
                         dialog.dismiss();
                         break;
                     case 1:
-                        mProductPresenter.onDeleteProductButtonClicked(clickedProduct);
+                        showDeleteProductPrompt(clickedProduct);
                         dialog.dismiss();
                         break;
                     case 2:
-                        mProductPresenter.onAddToCartButtonClicked(clickedProduct);
-                        dialog.dismiss();
-                        break;
-                    case 3:
-                        mProductPresenter.onGoogleSearchButtonClicked(clickedProduct);
+                        onSelectProduct(clickedProduct);
                         dialog.dismiss();
                         break;
                 }

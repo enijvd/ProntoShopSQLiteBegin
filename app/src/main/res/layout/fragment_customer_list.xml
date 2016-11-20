@@ -5,7 +5,7 @@
              android:paddingLeft="@dimen/margin_padding_tiny"
              android:layout_width="match_parent"
              android:layout_height="match_parent"
-             tools:context=".ui.customers.CustomerListFragment">
+             tools:context=".fragments.CustomerListFragment">
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/customer_recycler_view"

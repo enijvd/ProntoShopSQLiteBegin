@@ -1,4 +1,4 @@
-package com.okason.prontoshop.ui.checkout;
+package com.okason.prontoshop.adapter;
 
 import android.app.Activity;
 import android.app.AlertDialog;

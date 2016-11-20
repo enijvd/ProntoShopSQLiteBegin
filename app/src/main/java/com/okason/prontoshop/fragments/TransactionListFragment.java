@@ -1,4 +1,4 @@
-package com.okason.prontoshop.ui.transaction;
+package com.okason.prontoshop.fragments;
 
 
 import android.os.Bundle;
@@ -13,9 +13,12 @@ import android.widget.Toast;
 
 import com.okason.prontoshop.R;
 import com.okason.prontoshop.core.ProntoShopApplication;
+import com.okason.prontoshop.core.ShoppingCart;
 import com.okason.prontoshop.core.listeners.OnTransactionSelectedListener;
 import com.okason.prontoshop.models.Customer;
 import com.okason.prontoshop.models.SalesTransaction;
+import com.okason.prontoshop.adapter.TransactionAdapter;
+
 import com.squareup.otto.Bus;
 
 import java.util.ArrayList;
@@ -30,14 +33,14 @@ import butterknife.ButterKnife;
  * A simple {@link Fragment} subclass.
  */
 public class TransactionListFragment extends Fragment
-        implements TransactionContract.View, OnTransactionSelectedListener{
+        implements OnTransactionSelectedListener{
     private View mRootView;
     private TransactionAdapter mAdapter;
-    private TransactionContract.Actions mPresenter;
+
 
     @BindView(R.id.transaction_recycler_view) RecyclerView mRecyclerView;
     @BindView(R.id.empty_text) TextView mEmptyTextView;
-
+    @Inject ShoppingCart mCart;
     @Inject Bus mBus;
 
     public TransactionListFragment() {
@@ -58,14 +61,12 @@ public class TransactionListFragment extends Fragment
         mAdapter = new TransactionAdapter(transactions, this);
         mRecyclerView.setLayoutManager(layoutManager);
         mRecyclerView.setAdapter(mAdapter);
-        mPresenter = new TransactionPresenter(this);
         return mRootView;
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        mPresenter.loadSalesTransactions();
         try {
             mBus.register(this);
         } catch (Exception e) {
@@ -90,32 +91,29 @@ public class TransactionListFragment extends Fragment
 
     @Override
     public Customer getCustomer(long id) {
-        return mPresenter.getCustomerById(id);
+        //return mPresenter.getCustomerById(id);
+        return null;
     }
 
-    @Override
     public void showSalesTransaction(List<SalesTransaction> transactions) {
         mAdapter.replaceData(transactions);
     }
 
-    @Override
+
     public void showEmptyText() {
         mEmptyTextView.setVisibility(View.VISIBLE);
         mRecyclerView.setVisibility(View.GONE);
     }
 
-    @Override
+
     public void hideEmptyText() {
         mEmptyTextView.setVisibility(View.GONE);
         mRecyclerView.setVisibility(View.VISIBLE);
     }
 
-    @Override
-    public void showConfirmDeletePrompt(SalesTransaction transaction) {
 
-    }
 
-    @Override
+
     public void showMessage(String message) {
         Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
     }
